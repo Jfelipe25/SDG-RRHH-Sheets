@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SDG RH - Sistema Digital de Gestión de Recursos Humanos">
+    <title>SDG RH - Dashboard</title>
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e40af">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SDG RH">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-content">
+            <div class="logo-section">
+                <div class="logo-placeholder">
+                    <span class="logo-text">███ SDG</span>
+                </div>
+                <div class="header-title">
+                    <h1>SDG RH</h1>
+                    <p class="subtitle">Recursos Humanos</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button id="exportExcelBtn" class="btn btn-secondary">
+                    <span class="icon">📊</span>
+                    Exportar Excel
+                </button>
+                <button id="notificationsBtn" class="btn btn-secondary">
+                    <span class="icon">🔔</span>
+                    <span class="badge" id="notificationBadge">0</span>
+                </button>
+                <div class="user-menu">
+                    <button class="btn btn-ghost" id="userMenuBtn">
+                        <span class="icon">👤</span>
+                        <span>Admin</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Dashboard Screen -->
+        <div id="dashboardScreen" class="screen active">
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card" data-filter="all">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="totalTrabajadores">0</div>
+                        <div class="stat-label">Total Trabajadores</div>
+                    </div>
+                </div>
+                <div class="stat-card" data-filter="activo">
+                    <div class="stat-icon">🟢</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="trabajadoresActivos">0</div>
+                        <div class="stat-label">Activos</div>
+                    </div>
+                </div>
+                <div class="stat-card alert" data-filter="alertas">
+                    <div class="stat-icon">⚠️</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="alertasVencimiento">0</div>
+                        <div class="stat-label">Alertas</div>
+                    </div>
+                </div>
+                <div class="stat-card" data-filter="pendiente">
+                    <div class="stat-icon">📋</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="permisosPendientes">0</div>
+                        <div class="stat-label">Pendientes</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search and Actions -->
+            <div class="content-header">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="searchInput" class="search-input" placeholder="Buscar trabajador, cédula, cargo...">
+                </div>
+                <div class="header-actions-right">
+                    <select id="filterEstado" class="filter-select">
+                        <option value="all">Todos los estados</option>
+                        <option value="activo">🟢 Activos</option>
+                        <option value="vacaciones">🟡 Vacaciones</option>
+                        <option value="incapacidad">🔵 Incapacidad</option>
+                        <option value="inactivo">🔴 Inactivos</option>
+                    </select>
+                    <button id="nuevoTrabajadorBtn" class="btn btn-primary">
+                        <span class="icon">➕</span>
+                        Nuevo Trabajador
+                    </button>
+                </div>
+            </div>
+
+            <!-- Workers List -->
+            <div class="section-header">
+                <h2>Trabajadores</h2>
+                <span class="count-badge" id="trabajadoresCount">0</span>
+            </div>
+            <div id="trabajadoresList" class="trabajadores-grid">
+                <!-- Workers cards will be dynamically generated -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <div class="empty-icon">📋</div>
+                <h3>No hay trabajadores registrados</h3>
+                        </div>
+
+        <!-- Trabajador Detail Screen -->
+        <div id="trabajadorDetailScreen" class="screen">
+            <div class="detail-header">
+                <button id="backToListBtn" class="btn btn-ghost">
+                    <span class="icon">←</span>
+                    Volver
+                </button>
+                <div class="detail-actions">
+                    <button id="editTrabajadorBtn" class="btn btn-secondary">
+                        <span class="icon">✏️</span>
+                        Editar
+                    </button>
+                    <button id="generatePDFBtn" class="btn btn-secondary">
+                        <span class="icon">📄</span>
+                        Generar PDF
+                    </button>
+                    <button id="deleteTrabajadorBtn" class="btn btn-danger">
+                        <span class="icon">🗑️</span>
+                        Eliminar
+                    </button>
+                </div>
+            </div>
+            <div id="trabajadorDetailContent">
+                <!-- Detail content will be dynamically generated -->
+            </div>
+        </div>
+
+        <!-- Trabajador Form Screen -->
+        <div id="trabajadorFormScreen" class="screen">
+            <div class="form-header">
+                <button id="cancelFormBtn" class="btn btn-ghost">
+                    <span class="icon">←</span>
+                    Cancelar
+                </button>
+                <h2 id="formTitle">Nuevo Trabajador</h2>
+                <div class="form-progress">
+                    <span id="formProgress">0%</span>
+                </div>
+            </div>
+            
+            <div class="form-container">
+                <form id="trabajadorForm">
+                    <!-- Foto y Firma -->
+                    <div class="form-section">
+                        <h3 class="section-title">📸 Foto y Firma</h3>
+                        <div class="photo-signature-grid">
+                            <div class="photo-upload-container">
+                                <label>Foto del Trabajador</label>
+                                <div class="photo-preview" id="photoPreview">
+                                    <span class="placeholder-icon">📷</span>
+                                    <span class="placeholder-text">Click para capturar</span>
+                                </div>
+                                <input type="file" id="fotoInput" accept="image/*" capture="environment" style="display: none;">
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('fotoInput').click()">
+                                    <span class="icon">📷</span>
+                                    Tomar Foto
+                                </button>
+                            </div>
+                            <div class="signature-container">
+                                <label>Firma</label>
+                                <canvas id="firmaCanvas" class="signature-canvas" width="300" height="150"></canvas>
+                                <button type="button" id="clearFirmaBtn" class="btn btn-ghost btn-sm">
+                                    <span class="icon">🗑️</span>
+                                    Limpiar Firma
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información Personal -->
+                    <div class="form-section">
+                        <h3 class="section-title">👤 Información Personal</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="nombre">Nombre *</label>
+                                <input type="text" id="nombre" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="apellidos">Apellidos *</label>
+                                <input type="text" id="apellidos" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="cedula">Cédula *</label>
+                                <input type="text" id="cedula" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="lugarExpedicion">Lugar de Expedición</label>
+                                <input type="text" id="lugarExpedicion">
+                            </div>
+                            <div class="form-group">
+                                <label for="genero">Género</label>
+                                <select id="genero">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="masculino">Masculino</option>
+                                    <option value="femenino">Femenino</option>
+                                    <option value="otro">Otro</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="rh">RH</label>
+                                <select id="rh">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="O+">O+</option>
+                                    <option value="O-">O-</option>
+                                    <option value="A+">A+</option>
+                                    <option value="A-">A-</option>
+                                    <option value="B+">B+</option>
+                                    <option value="B-">B-</option>
+                                    <option value="AB+">AB+</option>
+                                    <option value="AB-">AB-</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="fechaNacimiento">Fecha de Nacimiento</label>
+                                <input type="date" id="fechaNacimiento">
+                            </div>
+                            <div class="form-group">
+                                <label>Edad</label>
+                                <input type="text" id="edad" readonly placeholder="Auto-calculado">
+                            </div>
+                            <div class="form-group">
+                                <label for="departamentoNacimiento">Departamento de Nacimiento</label>
+                                <input type="text" id="departamentoNacimiento">
+                            </div>
+                            <div class="form-group">
+                                <label for="ciudadNacimiento">Ciudad de Nacimiento</label>
+                                <input type="text" id="ciudadNacimiento">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información de Contacto -->
+                    <div class="form-section">
+                        <h3 class="section-title">📞 Información de Contacto</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="telefono">Teléfono *</label>
+                                <input type="tel" id="telefono" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="correo">Correo Electrónico *</label>
+                                <input type="email" id="correo" required>
+                            </div>
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label for="direccion">Dirección</label>
+                                <input type="text" id="direccion">
+                            </div>
+                            <div class="form-group">
+                                <label for="ciudad">Ciudad</label>
+                                <input type="text" id="ciudad">
+                            </div>
+                            <div class="form-group">
+                                <label for="barrio">Barrio</label>
+                                <input type="text" id="barrio">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información Laboral -->
+                    <div class="form-section">
+                        <h3 class="section-title">💼 Información Laboral</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="cargo">Cargo *</label>
+                                <input type="text" id="cargo" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="estado">Estado *</label>
+                                <select id="estado" required>
+                                    <option value="activo">🟢 Activo</option>
+                                    <option value="vacaciones">🟡 Vacaciones</option>
+                                    <option value="incapacidad">🔵 Incapacidad</option>
+                                    <option value="permiso">⚪ Permiso</option>
+                                    <option value="inactivo">🔴 Inactivo</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="fechaVinculacion">Fecha de Vinculación</label>
+                                <input type="date" id="fechaVinculacion">
+                            </div>
+                            <div class="form-group">
+                                <label for="eps">EPS</label>
+                                <input type="text" id="eps">
+                            </div>
+                            <div class="form-group">
+                                <label for="afp">AFP</label>
+                                <input type="text" id="afp">
+                            </div>
+                            <div class="form-group">
+                                <label for="arl">ARL</label>
+                                <input type="text" id="arl">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información Bancaria -->
+                    <div class="form-section">
+                        <h3 class="section-title">🏦 Información Bancaria</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="tipoCuenta">Tipo de Cuenta</label>
+                                <select id="tipoCuenta">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="ahorros">Ahorros</option>
+                                    <option value="corriente">Corriente</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="numeroCuenta">Número de Cuenta</label>
+                                <input type="text" id="numeroCuenta">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información Médica -->
+                    <div class="form-section">
+                        <h3 class="section-title">🏥 Información Médica</h3>
+                        <div class="form-grid">
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label for="alergias">Alergias</label>
+                                <textarea id="alergias" rows="2" placeholder="Describa las alergias conocidas..."></textarea>
+                            </div>
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label for="enfermedades">Enfermedades</label>
+                                <textarea id="enfermedades" rows="2" placeholder="Describa enfermedades o condiciones médicas..."></textarea>
+                            </div>
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label for="cirugias">Cirugías</label>
+                                <textarea id="cirugias" rows="2" placeholder="Describa cirugías previas..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contacto de Emergencia -->
+                    <div class="form-section">
+                        <h3 class="section-title">🚨 Contacto de Emergencia</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="nombreContactoEmergencia">Nombre Completo</label>
+                                <input type="text" id="nombreContactoEmergencia">
+                            </div>
+                            <div class="form-group">
+                                <label for="parentesco">Parentesco</label>
+                                <input type="text" id="parentesco" placeholder="Ej: Madre, Esposo, Hermano">
+                            </div>
+                            <div class="form-group">
+                                <label for="numeroContactoEmergencia">Teléfono</label>
+                                <input type="tel" id="numeroContactoEmergencia">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <button type="button" id="cancelFormBtn2" class="btn btn-secondary">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <span class="icon">✓</span>
+                            Guardar Trabajador
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p>Procesando...</p>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="app.js"></script>
+    
+    <!-- PWA Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(reg => console.log('✅ Service Worker registrado'))
+                    .catch(err => console.log('❌ Error:', err));
+            });
+        }
+    </script>
+</body>
+</html>
+<!-- v1.0.1 -->

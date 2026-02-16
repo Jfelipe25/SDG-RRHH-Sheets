@@ -1,0 +1,62 @@
+{
+  "name": "SDG RH - Sistema Digital de Gestión",
+  "short_name": "SDG RH",
+  "description": "Sistema Digital de Gestión de Recursos Humanos. Gestiona trabajadores, contratos, vacaciones, incapacidades y más.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#1e40af",
+  "orientation": "portrait-primary",
+  "scope": "./",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": [
+    "productivity",
+    "business",
+    "utilities"
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Nuevo Trabajador",
+      "short_name": "Nuevo",
+      "description": "Agregar nuevo trabajador",
+      "url": "./index.html?action=new",
+      "icons": [
+        {
+          "src": "./icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Ver Trabajadores",
+      "short_name": "Trabajadores",
+      "description": "Ver lista de trabajadores",
+      "url": "./index.html",
+      "icons": [
+        {
+          "src": "./icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "permissions": [
+    "camera",
+    "notifications"
+  ],
+  "prefer_related_applications": false
+}
