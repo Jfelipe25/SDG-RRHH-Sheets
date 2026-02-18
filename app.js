@@ -1,3 +1,6 @@
+// SDG RH - Google Sheets Edition
+// Database viene de google-sheets-db.js y database-adapter.js
+
 // ========================================
 // SDG RH - Sistema Digital de Gestión
 // Recursos Humanos v1.0
@@ -16,101 +19,6 @@ const SDG_CONFIG = {
 // ========================================
 // BASE DE DATOS (LocalStorage)
 // ========================================
-class Database {
-    constructor() {
-        this.data = this.loadData();
-    }
-
-    loadData() {
-        const stored = localStorage.getItem(SDG_CONFIG.storageKey);
-        if (stored) {
-            return JSON.parse(stored);
-        }
-        return {
-            trabajadores: [],
-            contratos: [],
-            vacaciones: [],
-            incapacidades: [],
-            permisos: [],
-            formacion: [],
-            lastUpdate: new Date().toISOString()
-        };
-    }
-
-    saveData() {
-        this.data.lastUpdate = new Date().toISOString();
-        localStorage.setItem(SDG_CONFIG.storageKey, JSON.stringify(this.data));
-        console.log('✅ Datos guardados');
-    }
-
-    // TRABAJADORES
-    getTrabajadores() {
-        return this.data.trabajadores || [];
-    }
-
-    getTrabajadorById(id) {
-        return this.data.trabajadores.find(t => t.id === id);
-    }
-
-    getTrabajadorByCedula(cedula) {
-        return this.data.trabajadores.find(t => t.cedula === cedula);
-    }
-
-    addTrabajador(trabajador) {
-        trabajador.id = this.generateUUID();
-        trabajador.createdAt = new Date().toISOString();
-        trabajador.updatedAt = new Date().toISOString();
-        this.data.trabajadores.push(trabajador);
-        this.saveData();
-        return trabajador;
-    }
-
-    updateTrabajador(id, updates) {
-        const index = this.data.trabajadores.findIndex(t => t.id === id);
-        if (index !== -1) {
-            this.data.trabajadores[index] = {
-                ...this.data.trabajadores[index],
-                ...updates,
-                updatedAt: new Date().toISOString()
-            };
-            this.saveData();
-            return this.data.trabajadores[index];
-        }
-        return null;
-    }
-
-    deleteTrabajador(id) {
-        this.data.trabajadores = this.data.trabajadores.filter(t => t.id !== id);
-        // También eliminar datos relacionados
-        this.data.contratos = this.data.contratos.filter(c => c.idTrabajador !== id);
-        this.data.vacaciones = this.data.vacaciones.filter(v => v.idTrabajador !== id);
-        this.data.incapacidades = this.data.incapacidades.filter(i => i.idTrabajador !== id);
-        this.data.permisos = this.data.permisos.filter(p => p.idTrabajador !== id);
-        this.data.formacion = this.data.formacion.filter(f => f.idTrabajador !== id);
-        this.saveData();
-    }
-
-    // UTILIDADES
-    generateUUID() {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-            const r = Math.random() * 16 | 0;
-            const v = c === 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-        });
-    }
-
-    // EXPORTAR TODO
-    exportAll() {
-        return {
-            ...this.data,
-            exportDate: new Date().toISOString(),
-            version: SDG_CONFIG.version
-        };
-    }
-}
-
-// Instancia global de la base de datos
-const db = new Database();
 
 // ========================================
 // GESTIÓN DE PANTALLAS
@@ -135,21 +43,21 @@ class ScreenManager {
         }
     }
 
-    showDashboard() {
+    async showDashboard() {
         this.show('dashboard');
-        renderTrabajadores();
-        updateStats();
+        await renderTrabajadores();
+        await updateStats();
     }
 
-    showDetail(trabajadorId) {
+    async showDetail(trabajadorId) {
         this.show('detail');
-        renderTrabajadorDetail(trabajadorId);
+        await renderTrabajadorDetail(trabajadorId);
     }
 
-    showForm(trabajadorId = null) {
+    async showForm(trabajadorId = null) {
         this.show('form');
         if (trabajadorId) {
-            loadTrabajadorToForm(trabajadorId);
+            await loadTrabajadorToForm(trabajadorId);
             document.getElementById('formTitle').textContent = 'Editar Trabajador';
         } else {
             resetForm();
@@ -163,10 +71,10 @@ const screenManager = new ScreenManager();
 // ========================================
 // RENDERIZADO DE TRABAJADORES
 // ========================================
-function renderTrabajadores(filter = '') {
+async function renderTrabajadores(filter = '') {
     const container = document.getElementById('trabajadoresList');
     const emptyState = document.getElementById('emptyState');
-    let trabajadores = db.getTrabajadores();
+    let trabajadores = await db.getTrabajadores();
 
     // Aplicar filtro de búsqueda
     if (filter) {
@@ -202,7 +110,11 @@ function renderTrabajadores(filter = '') {
         emptyState.style.display = 'none';
     }
 
-    // Renderizar cards
+    console.log('📊 Trabajadores:', trabajadores); // ← AGREGAR ESTO
+console.log('📊 Tipo:', typeof trabajadores); // ← Y ESTO
+console.log('📊 Es array?:', Array.isArray(trabajadores)); // ← Y ESTO
+
+// Renderizar cards
     container.innerHTML = trabajadores.map(t => createTrabajadorCard(t)).join('');
 }
 
@@ -218,9 +130,9 @@ function createTrabajadorCard(trabajador) {
     const estadoClass = `estado-${trabajador.estado || 'activo'}`;
     const fotoUrl = trabajador.foto || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23ddd" width="100" height="100"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999" font-size="40"%3E👤%3C/text%3E%3C/svg%3E';
 
-    // Contar registros relacionados
-    const contratosCount = db.data.contratos.filter(c => c.idTrabajador === trabajador.id).length;
-    const vacacionesCount = db.data.vacaciones.filter(v => v.idTrabajador === trabajador.id).length;
+    // Contar registros relacionados (placeholder por ahora)
+const contratosCount = 0;
+const vacacionesCount = 0;
 
     return `
         <div class="trabajador-card ${estadoClass}" onclick="screenManager.showDetail('${trabajador.id}')">
@@ -255,11 +167,11 @@ function createTrabajadorCard(trabajador) {
 // ========================================
 // DETALLE DE TRABAJADOR
 // ========================================
-function renderTrabajadorDetail(trabajadorId) {
-    const trabajador = db.getTrabajadorById(trabajadorId);
+async function renderTrabajadorDetail(trabajadorId) {
+    const trabajador = await db.getTrabajadorById(trabajadorId);
     if (!trabajador) {
         showToast('Trabajador no encontrado', 'error');
-        screenManager.showDashboard();
+        await screenManager.showDashboard();
         return;
     }
 
@@ -473,19 +385,19 @@ function renderTrabajadorDetail(trabajadorId) {
     }, 100);
 
     // Event listeners para botones
-    document.getElementById('editTrabajadorBtn').onclick = () => {
-        screenManager.showForm(trabajadorId);
-    };
+    document.getElementById('editTrabajadorBtn').onclick = async () => {
+    await screenManager.showForm(trabajadorId);
+};
 
-    document.getElementById('deleteTrabajadorBtn').onclick = () => {
+    document.getElementById('deleteTrabajadorBtn').onclick = async () => {
         if (confirm(`¿Está seguro de eliminar a ${trabajador.nombre} ${trabajador.apellidos}?\n\nEsta acción no se puede deshacer.`)) {
-            db.deleteTrabajador(trabajadorId);
+            await db.deleteTrabajador(trabajadorId);
             showToast('Trabajador eliminado correctamente', 'success');
-            screenManager.showDashboard();
+            await screenManager.showDashboard();
         }
     };
 
-    document.getElementById('generatePDFBtn').onclick = () => {
+    document.getElementById('generatePDFBtn').onclick = async () => {
         generateTrabajadorPDF(trabajador);
     };
 }
@@ -510,8 +422,8 @@ function resetForm() {
 
 let currentEditingId = null;
 
-function loadTrabajadorToForm(trabajadorId) {
-    const trabajador = db.getTrabajadorById(trabajadorId);
+async function loadTrabajadorToForm(trabajadorId) {
+    const trabajador = await db.getTrabajadorById(trabajadorId);
     if (!trabajador) return;
 
     currentEditingId = trabajadorId;
@@ -723,7 +635,7 @@ document.getElementById('trabajadorForm').addEventListener('input', updateFormPr
 // ========================================
 // GUARDAR TRABAJADOR
 // ========================================
-document.getElementById('trabajadorForm').addEventListener('submit', function(e) {
+document.getElementById('trabajadorForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
     const formData = {
@@ -780,7 +692,7 @@ document.getElementById('trabajadorForm').addEventListener('submit', function(e)
         }
         
         // Actualizar
-        db.updateTrabajador(currentEditingId, formData);
+        await db.updateTrabajador(currentEditingId, formData);
         showToast('Trabajador actualizado correctamente', 'success');
     } else {
         // Nuevo: verificar que la cédula no exista
@@ -790,30 +702,30 @@ document.getElementById('trabajadorForm').addEventListener('submit', function(e)
         }
         
         // Crear nuevo
-        db.addTrabajador(formData);
+        await db.addTrabajador(formData);
         showToast('Trabajador agregado correctamente', 'success');
     }
 
-    screenManager.showDashboard();
+    await screenManager.showDashboard();
 });
 
 // ========================================
 // BÚSQUEDA Y FILTROS
 // ========================================
-document.getElementById('searchInput').addEventListener('input', function(e) {
-    renderTrabajadores(e.target.value);
+document.getElementById('searchInput').addEventListener('input', async function(e) {
+    await renderTrabajadores(e.target.value);
 });
 
-document.getElementById('filterEstado').addEventListener('change', function() {
+document.getElementById('filterEstado').addEventListener('change', async function() {
     const searchValue = document.getElementById('searchInput').value;
-    renderTrabajadores(searchValue);
+    await renderTrabajadores(searchValue);
 });
 
 // ========================================
 // ESTADÍSTICAS
 // ========================================
-function updateStats() {
-    const trabajadores = db.getTrabajadores();
+async function updateStats() {
+    const trabajadores = await db.getTrabajadores();
     
     document.getElementById('totalTrabajadores').textContent = trabajadores.length;
     document.getElementById('trabajadoresActivos').textContent = 
@@ -831,8 +743,8 @@ function updateStats() {
 // ========================================
 document.getElementById('exportExcelBtn').addEventListener('click', exportToExcel);
 
-function exportToExcel() {
-    const trabajadores = db.getTrabajadores();
+async function exportToExcel() {
+    const trabajadores = await db.getTrabajadores();
     
     if (trabajadores.length === 0) {
         showToast('No hay trabajadores para exportar', 'warning');
@@ -1019,23 +931,23 @@ function showToast(message, type = 'info') {
 // ========================================
 // EVENT LISTENERS GLOBALES
 // ========================================
-document.getElementById('nuevoTrabajadorBtn').addEventListener('click', () => {
-    screenManager.showForm();
+document.getElementById('nuevoTrabajadorBtn').addEventListener('click', async () => {
+    await screenManager.showForm();
 });
 
-document.getElementById('backToListBtn').addEventListener('click', () => {
-    screenManager.showDashboard();
+document.getElementById('backToListBtn').addEventListener('click', async () => {
+    await screenManager.showDashboard();
 });
 
-document.getElementById('cancelFormBtn').addEventListener('click', () => {
-    if (confirm('¿Desea cancelar? Los cambios no guardados se perderán.')) {
-        screenManager.showDashboard();
+document.getElementById('cancelFormBtn').addEventListener('click', async () => {
+    if (confirm('¿Desea cancelar?...')) {
+        await screenManager.showDashboard();
     }
 });
 
-document.getElementById('cancelFormBtn2').addEventListener('click', () => {
+document.getElementById('cancelFormBtn2').addEventListener('click', async () => {
     if (confirm('¿Desea cancelar? Los cambios no guardados se perderán.')) {
-        screenManager.showDashboard();
+        await screenManager.showDashboard();
     }
 });
 
@@ -1056,18 +968,18 @@ function formatDate(dateString) {
 // ========================================
 // INICIALIZACIÓN
 // ========================================
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
     console.log('🚀 SDG RH Iniciado');
     
     // Cargar trabajadores
-    renderTrabajadores();
-    updateStats();
+    await renderTrabajadores();
+    await updateStats();
     
     // Verificar si hay parámetro de trabajador en URL
     const urlParams = new URLSearchParams(window.location.search);
     const trabajadorId = urlParams.get('trabajador');
     if (trabajadorId) {
-        screenManager.showDetail(trabajadorId);
+        await screenManager.showDetail(trabajadorId);
     }
     
     showToast('¡Bienvenido a SDG RH!', 'success');
@@ -1081,3 +993,4 @@ setInterval(() => {
 }, SDG_CONFIG.autoSaveInterval);
 
 console.log('✅ SDG RH - App.js cargado correctamente');
+
