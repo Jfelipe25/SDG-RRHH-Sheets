@@ -34,14 +34,16 @@ class ScreenManager {
     }
 
     show(screenName) {
-        Object.keys(this.screens).forEach(key => {
-            this.screens[key].classList.remove('active');
-        });
-        if (this.screens[screenName]) {
-            this.screens[screenName].classList.add('active');
-            this.currentScreen = screenName;
-        }
-    }
+  Object.keys(this.screens).forEach(key => {
+    if (this.screens[key]) this.screens[key].classList.remove('active');
+  });
+  if (this.screens[screenName]) {
+    this.screens[screenName].classList.add('active');
+    this.currentScreen = screenName;
+  } else {
+    console.error('Pantalla no encontrada:', screenName);
+  }
+}
 
     async showDashboard() {
         this.show('dashboard');
